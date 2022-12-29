@@ -1,5 +1,6 @@
 load("http.star", "http")
 load("render.star", "render")
+load("encoding/base64.star", "base64")
 
 USER_INFO_URL = "http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user="
 
@@ -18,6 +19,19 @@ def main(config):
         fail("Failed with %d", rep.status_code)
 
     realname = rep.json()["user"]["realname"]
+    image = rep.json()["user"]["image"][0]["#text"]
+    image_file = http.get(image).body()
+
     return render.Root(
-        child = render.Text(realname)
+        child = render.Box(
+            render.Row(
+                expanded=True,
+                main_align="space_evenly",
+                cross_align="center",
+                children = [
+                    render.Image(src=image_file, width=25, height=25),
+                    render.Text(realname)
+                ],
+            )
+        )
     )

@@ -1,6 +1,8 @@
 load("http.star", "http")
 load("render.star", "render")
 load("encoding/base64.star", "base64")
+load("time.star", "time")
+load("humanize.star","humanize")
 
 USER_INFO_URL = "http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user="
 RECENT_TRACKS_URL = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user="
@@ -38,16 +40,19 @@ def main(config):
 
     last_played_song = rep.json()["recenttracks"]["track"][0]
     last_played_song_title = last_played_song["name"]
+    last_played_artist = last_played_song["artist"]["#text"]
+    last_played_time = humanize.time(time.from_timestamp(int(last_played_song["date"]["uts"])))
 
     return render.Root(
         child = render.Box(
-            render.Row(
-                expanded=True,
-                main_align="space_evenly",
-                cross_align="center",
+            child = render.Column(
+                expanded = True,
+                cross_align = "start",
                 children = [
-                    render.Text(last_played_song_title)
-                ],
+                    render.Text(last_played_song_title),
+                    render.Text("by " + last_played_artist),
+                    render.Text("Played " + last_played_time)
+                ]
             )
         )
     )

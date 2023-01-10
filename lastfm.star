@@ -1,8 +1,11 @@
 load("http.star", "http")
 load("render.star", "render")
 load("encoding/base64.star", "base64")
+load("time.star", "time")
+load("humanize.star","humanize")
 
 USER_INFO_URL = "http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user="
+RECENT_TRACKS_URL = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user="
 
 def main(config):
     api_key = config.get("api_key")
@@ -29,25 +32,27 @@ def main(config):
             child = render.WrappedText(error_message)
         ) 
     
-    full_url = USER_INFO_URL + user + "&api_key=" + api_key + "&format=json"
+    # Get recent tracks data
+    full_url = RECENT_TRACKS_URL + user + "&api_key=" + api_key + "&format=json"
     rep = http.get(full_url)
     if rep.status_code != 200:
         fail("Failed with %d", rep.status_code)
 
-    realname = rep.json()["user"]["realname"]
-    image = rep.json()["user"]["image"][0]["#text"]
-    image_file = http.get(image).body()
+    last_played_song = rep.json()["recenttracks"]["track"][0]
+    last_played_song_title = last_played_song["name"]
+    last_played_artist = last_played_song["artist"]["#text"]
+    last_played_time = humanize.time(time.from_timestamp(int(last_played_song["date"]["uts"])))
 
     return render.Root(
         child = render.Box(
-            render.Row(
-                expanded=True,
-                main_align="space_evenly",
-                cross_align="center",
+            child = render.Column(
+                expanded = True,
+                cross_align = "start",
                 children = [
-                    render.Image(src=image_file, width=25, height=25),
-                    render.Text(realname)
-                ],
+                    render.Text(last_played_song_title),
+                    render.Text("by " + last_played_artist),
+                    render.Text("Played " + last_played_time)
+                ]
             )
         )
     )

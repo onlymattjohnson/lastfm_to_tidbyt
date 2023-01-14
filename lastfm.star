@@ -50,8 +50,8 @@ def main(config):
                 cross_align = "start",
                 children = [
                     render.Padding(pad = 1, child = render.Text(last_played_song_title.upper(), height=7)),
-                    render.Text("by " + last_played_artist),
-                    render.Text("Played " + last_played_time)
+                    render.Padding(pad = 1, child = render.Text("by " + last_played_artist)),
+                    render.Padding(pad = 1, child = render.Text("Played " + last_played_time))
                 ]
             )
         )
